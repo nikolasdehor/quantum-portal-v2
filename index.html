@@ -1,0 +1,180 @@
+<!-- index.html para "Nikolas Quantum Portal v2" — A Revolução Interativa -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nikolas Quantum Portal v2</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0f0f0f, #1a1a1a);
+      font-family: 'Orbitron', sans-serif;
+      color: #00ffe0;
+    }
+    #overlay, #story, #endScreen {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: rgba(0,0,0,0.85);
+      z-index: 10;
+      text-align: center;
+    }
+    #overlay.hidden, #story.hidden, #endScreen.hidden {
+      display: none;
+    }
+    canvas {
+      display: block;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #00ffe0;
+      color: #000;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div id="story">
+    <h1>🧬 Nikolas Quantum Portal v2</h1>
+    <p>Você acorda em um espaço quântico onde dados, IA e energia colidem.<br>
+    Colete orbes de conhecimento, evite bugs, abra o portal.<br>
+    Pronto para cruzar o limiar?</p>
+    <button onclick="startGame()">Iniciar Missão</button>
+  </div>
+
+  <div id="endScreen" class="hidden">
+    <h1>🌌 Portal Aberto!</h1>
+    <p>Você desbloqueou a IA oculta.<br>
+    Quer iniciar a próxima jornada com Nikolas?</p>
+    <a href="https://linkedin.com/in/nikolasdehor" target="_blank"><button>Conecte-se Agora</button></a>
+  </div>
+
+  <canvas id="game"></canvas>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const avatar = { x: canvas.width / 2, y: canvas.height / 2, size: 20, color: '#00ffe0', speed: 5 };
+    let score = 0;
+    const energyOrbs = [];
+    const glitches = [];
+
+    const particles = [];
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 1,
+        speedY: Math.random() * 1 + 0.5,
+        color: '#ffffff22'
+      });
+    }
+
+    function spawnOrb() {
+      energyOrbs.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: 15,
+        color: '#ff00ff'
+      });
+    }
+
+    function spawnGlitch() {
+      glitches.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: 25,
+        color: '#ff3333'
+      });
+    }
+
+    function drawEntity(e) {
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
+      ctx.fillStyle = e.color;
+      ctx.fill();
+    }
+
+    function updateParticles() {
+      particles.forEach(p => {
+        p.y += p.speedY;
+        if (p.y > canvas.height) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updateParticles();
+      drawEntity(avatar);
+
+      energyOrbs.forEach((orb, idx) => {
+        drawEntity(orb);
+        if (Math.hypot(avatar.x - orb.x, avatar.y - orb.y) < avatar.size + orb.size) {
+          score++;
+          energyOrbs.splice(idx, 1);
+          spawnOrb();
+          if (score >= 15) endGame();
+        }
+      });
+
+      glitches.forEach(glitch => drawEntity(glitch));
+      glitches.forEach((glitch) => {
+        if (Math.hypot(avatar.x - glitch.x, avatar.y - glitch.y) < avatar.size + glitch.size) endGame(true);
+      });
+    }
+
+    function endGame(failed = false) {
+      cancelAnimationFrame(loop);
+      if (!failed) document.getElementById('endScreen').classList.remove('hidden');
+      else alert('💥 Você foi pego por um glitch! Tente novamente.');
+    }
+
+    let keys = {};
+    window.addEventListener('keydown', e => keys[e.key] = true);
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    function moveAvatar() {
+      if (keys['ArrowUp']) avatar.y -= avatar.speed;
+      if (keys['ArrowDown']) avatar.y += avatar.speed;
+      if (keys['ArrowLeft']) avatar.x -= avatar.speed;
+      if (keys['ArrowRight']) avatar.x += avatar.speed;
+    }
+
+    function loopFn() {
+      moveAvatar();
+      update();
+      loop = requestAnimationFrame(loopFn);
+    }
+
+    function startGame() {
+      document.getElementById('story').classList.add('hidden');
+      for (let i = 0; i < 5; i++) spawnOrb();
+      setInterval(spawnGlitch, 4000);
+      loop = requestAnimationFrame(loopFn);
+    }
+
+    let loop;
+  </script>
+</body>
+</html>
